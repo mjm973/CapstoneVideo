@@ -30,10 +30,8 @@ def locked():
     if redirectUnlocked():
         return redirect('/')
 
-    jsUrl = url_for('static', filename='js/main.js')
+    jsUrl = url_for('static', filename='js/mock.js')
     cssUrl = url_for('static', filename='css/main.css')
-    pUrl = url_for('static', filename='svg/phoenix_mono.svg')
-    wUrl = url_for('static', filename='svg/wyvern_mono.svg')
 
     return render_template('index.html', js=jsUrl, css=cssUrl)
 
@@ -70,7 +68,7 @@ def forceCheck():
 def fs():
     global bFeed
     #path ="C:\Users\Mateo Juvera\Desktop\USBBackup\key.txt"
-    path = 'C:/Users/Mateo Juvera/Desktop/USBBackup/key.txt'
+    path = 'C:/Users/Mateo Juvera/Desktop/USBBackup/kaey.txt'
 
     jsUrl = url_for('static', filename='js/main.js')
     cssUrl = url_for('static', filename='css/main.css')
@@ -136,7 +134,7 @@ def checkKey(caller=None):
 
 # called once key has been insterted (on server A) to unlock bLockLocked (on server B) and display password prompt (on client A)
 def sendKey():
-    req = requests.post('http://localhost:5050/key/', data = {})
+    req = requests.post('http://localhost:5000/key/', data = {})
 
     res = req.json()
 
@@ -172,4 +170,4 @@ def redirectUnlocked():
 
 if __name__ == '__main__':
     print("Running multithreaded...")
-    app.run(host='localhost', port=5000, threaded=True)
+    app.run(host='localhost', port=5050, threaded=True)
