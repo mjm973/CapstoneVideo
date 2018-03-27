@@ -7,6 +7,19 @@
   <script src="{{js}}"></script>
 </head>
 <body>
-  <h1>HI</h1>
-  <h2>{{msg}}</h2>
+  <div class="main">
+    <img id="svg" src="{{phoenix}}" />
+    <div id="overlay">
+      <div id="message" class="{{mClass}}">
+        {{msg}}
+      </div>
+      <div id="pass-container" class="{{pClass}}">
+        <form id="pass-form" action="http://localhost:5000/pass/" method="post">
+          <input id="pass-r" name="r" class="pass-box red" type="number" placeholder="#" min="0" max="9" maxlength="1" tabindex="1" autofocus/>
+          <input id="pass-g" name="g" class="pass-box green" type="number" placeholder="#" min="0" max="9" maxlength="1" tabindex="2" />
+          <input id="pass-b" name="b" class="pass-box blue" type="number" placeholder="#" min="0" max="9" maxlength="1" tabindex="3" />
+        </form>
+      </div>
+    </div>
+  </div>
 </body>

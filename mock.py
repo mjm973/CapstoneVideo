@@ -2,11 +2,14 @@ from flask import Flask, render_template, request, url_for, jsonify, redirect, R
 from cam import VideoCamera
 from setInterval import setInterval
 import requests
+import json
+import sys
 
 app = Flask(__name__)
 
-ip = 'localhost'
-port = 4242
+targetAddress = 'localhost'
+targetPort = 5050
+password = 123
 
 bPassLocked = True
 bLockLocked = True
@@ -30,22 +33,38 @@ def locked():
     if redirectUnlocked():
         return redirect('/')
 
-    jsUrl = url_for('static', filename='js/mock.js')
+    jsUrl = url_for('static', filename='js/main.js')
     cssUrl = url_for('static', filename='css/main.css')
+    pUrl = url_for('static', filename='svg/phoenix_mono.svg')
+    wUrl = url_for('static', filename='svg/wyvern_mono.svg')
 
-    return render_template('index.html', js=jsUrl, css=cssUrl)
+    msg = makeMessage()
+    mClass, pClass = makeClasses()
+
+    return render_template('index.html', js=jsUrl, css=cssUrl, phoenix=pUrl, msg=msg, mClass=mClass, pClass=pClass)
 
 # api route to receive and check password
 @app.route('/pass/', methods=['POST'])
 def password():
-    pass
+    global bPassLocked;
+
+    print('Method: {0} || Data: {1}'.format(request.method, request.form))
+
+    form = request.form;
+    passString = form['r'] + form['g'] + form['b']
+
+    print("{0} == {1}".format(passString, password))
+    if int(passString) == password:
+        bPassLocked = False
+
+    return redirect('/')
 
 # api route to receive confirmation that the key has been insterted
 @app.route('/key/', methods=['POST'])
 def key():
     global bLockLocked
 
-    bLockLocked = True
+    bLockLocked = False
     print("Key received!")
 
     return jsonify({
@@ -54,40 +73,6 @@ def key():
         'value': bLockLocked,
         'success': True
     })
-
-# client A queries this regularly on server A to read filesystem
-@app.route('/check/', methods=['POST'])
-def forceCheck():
-    if bLockLocked:
-        result = checkKey()
-        return jsonify([result])
-
-    return jsonify([True])
-
-@app.route('/fs/')
-def fs():
-    global bFeed
-    #path ="C:\Users\Mateo Juvera\Desktop\USBBackup\key.txt"
-    path = 'C:/Users/Mateo Juvera/Desktop/USBBackup/kaey.txt'
-
-    jsUrl = url_for('static', filename='js/main.js')
-    cssUrl = url_for('static', filename='css/main.css')
-
-    res = []
-    try:
-        with open(path, 'r') as file:
-            pass
-        res = [True]
-        bFeed = True
-        #return render_template('index.html', js=jsUrl, css=cssUrl, msg='yay
-    except:
-        #return render_template('index.html', js=jsUrl, css=cssUrl, msg=':c')
-        # res = [False]
-        bFeed = False
-
-    return jsonify([bFeed])
-    # return jsonify(res)
-    #return redirect('/')
 
 @app.route('/feed/')
 def cam_test():
@@ -106,42 +91,18 @@ def not_found(err):
 
 # camera sorcery
 def gen(cam):
-    while True:
-        frame = cam.get_frame()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+    try:
+        while True:
+            frame = cam.get_frame()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+    except KeyboardInterrupt:
+        print('bai!')
+        sys.exit()
 
 # wrapper for camera sorcery
 def videoFeed(cam):
     return Response(gen(cam), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-# callback that will check if the key has been inserted
-def checkKey(caller=None):
-    print('Checking for key...')
-
-    path = 'C:/Users/Mateo Juvera/Desktop/USBBackup/key.txt'
-
-    try:
-        with open(path, 'r') as file:
-            print(file.read())
-            result = sendKey()
-            print("Key sent!")
-            if caller is not None:
-                caller.cancel()
-            return result
-    except:
-        return False
-
-# called once key has been insterted (on server A) to unlock bLockLocked (on server B) and display password prompt (on client A)
-def sendKey():
-    req = requests.post('http://localhost:5000/key/', data = {})
-
-    res = req.json()
-
-    print(res)
-    print(res['success'])
-
-    return res['success']
 
 # utility to redirect when locked
 def redirectLocked():
@@ -165,9 +126,43 @@ def redirectUnlocked():
 
     return False
 
-# set our key checking to an interval
-# check = setInterval(0.5, checkKey)
+# makes the message to be displayed on lock screen
+def makeMessage():
+    if bLockLocked:
+        return "No system key found. Please insert system key and press return to retry."
+    elif bPassLocked:
+        return "Enter password:"
+
+    return ""
+
+# makes classes to control lock page behavior
+def makeClasses():
+    if bLockLocked:
+        return ("lock", "hidden")
+
+    return ("", "")
+
+# reads config.json and updates globals accordingly
+def readConfig():
+    global targetAddress
+    global targetPort
+    global password
+
+    print('Reading config.json...')
+    try:
+        with open('config.json', 'r') as file:
+            data = json.load(file)
+            for key, val in data.items():
+                print('{0} : {1}'.format(key, val))
+                if key == 'targetAddress':
+                    targetAddress = val
+                elif key == 'targetPort':
+                    targetPort = val
+                elif key == 'password':
+                    password = val
+    except Exception as e:
+        print('Error reading JSON... {0}'.format(e))
 
 if __name__ == '__main__':
-    print("Running multithreaded...")
-    app.run(host='localhost', port=5050, threaded=True)
+    #readConfig()
+    app.run(host=targetAddress, port=targetPort)

@@ -1,27 +1,50 @@
-let checkId = null;
+let setPassBehavior = () => {
+  let form = document.getElementById('pass-form');
+  let passR = document.getElementById('pass-r');
+  let passG = document.getElementById('pass-g');
+  let passB = document.getElementById('pass-b');
+  passR.addEventListener('keydown', (e) => {
+    if (e.keyCode == 8) { // backspace
 
-let checkFile = () => {
-  // console.log("querying filesystem...");
-  // fetch('http://localhost:5000/check/', {
-  //   body: JSON.stringify({}),
-  //   method: 'POST',
-  //   mode: 'no-cors'
-  // }).then((res) => {
-  //   return res.json();
-  // }).then((wat) => {
-  //   console.log(wat);
-  //   if (wat[0]) {
-  //     console.log("found it!");
-  //     //clearInterval(checkId);
-  //     return;
-  //   }
-  //   setTimeout(checkFile, 1500);
-  // });
+    } else {
+      setTimeout(() => {passG.focus();}, 10);
+    }
+  });
+  passG.addEventListener('keydown', (e) => {
+    if (e.keyCode == 8) { // backspace
+      setTimeout(() => {passR.focus();}, 10);
+    } else {
+      setTimeout(() => {passB.focus();}, 10);
+    }
+  });
+  passB.addEventListener('keydown', (e) => {
+    if (e.keyCode == 8) { // backspace
+      setTimeout(() => {passG.focus();}, 10);
+    } else if (e.keyCode == 13) { // return
+      form.submit();
+    } else {
+      if (passB.value) {
+        e.preventDefault();
+      }
+    }
+  });
 }
 
-document.addEventListener('DOMContentLoaded', ()=> {
+let setLockBehavior = () => {
+  let retry = document.getElementsByClassName("lock");
+  if (retry.length > 0) {
+    document.addEventListener('keydown', (e) => {
+      e.preventDefault();
+      if (e.keyCode == 13) { // return
+        window.location.reload(true);
+      }
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
   console.log("loaded!");
-  //checkId = setInterval(checkFile, 1000);
-  //console.log("checkId is", checkId);
-  checkFile();
+
+  setPassBehavior();
+  setLockBehavior();
 });
