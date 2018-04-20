@@ -165,4 +165,4 @@ def readConfig():
 
 if __name__ == '__main__':
     readConfig()
-    app.run(host=targetAddress, port=targetPort)
+    app.run(host=targetAddress, port=targetPort, threaded=True)
