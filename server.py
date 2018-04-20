@@ -4,6 +4,7 @@ from setInterval import setInterval
 import requests
 import json
 import sys
+import getopt
 
 app = Flask(__name__)
 
@@ -143,14 +144,16 @@ def makeClasses():
     return ("", "")
 
 # reads config.json and updates globals accordingly
-def readConfig():
+def readConfig(b):
     global targetAddress
     global targetPort
     global password
 
-    print('Reading config.json...')
+    filename = 'configB.json' if b else 'configA.json'
+
+    print('Reading {0}...'.format(filename))
     try:
-        with open('config.json', 'r') as file:
+        with open(filename, 'r') as file:
             data = json.load(file)
             for key, val in data.items():
                 print('{0} : {1}'.format(key, val))
@@ -164,5 +167,17 @@ def readConfig():
         print('Error reading JSON... {0}'.format(e))
 
 if __name__ == '__main__':
-    readConfig()
+    isB = False
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "b", [])
+    except getopt.GetoptError:
+        print("Option Error")
+        sys.exit()
+
+    for opt, arg in opts:
+        if opt == '-b':
+            isB = True
+
+    readConfig(isB)
     app.run(host=targetAddress, port=targetPort, threaded=True)
