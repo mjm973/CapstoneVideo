@@ -5,15 +5,18 @@ import requests
 import json
 import sys
 import getopt
+import socket
 
 app = Flask(__name__)
 
 targetAddress = 'localhost'
 targetPort = 5000
 password = 123
+myIp = '0.0.0.0'
 
 bPassLocked = True
 bLockLocked = True
+isB = False;
 
 ### ROUTES ###
 
@@ -38,11 +41,15 @@ def locked():
     cssUrl = url_for('static', filename='css/main.css')
     pUrl = url_for('static', filename='svg/phoenix_mono.svg')
     wUrl = url_for('static', filename='svg/wyvern_mono.svg')
+    targetUrl = "http://{0}:{1}/pass/".format(myIp, targetPort)
 
     msg = makeMessage()
     mClass, pClass = makeClasses()
 
-    return render_template('index.html', js=jsUrl, css=cssUrl, phoenix=pUrl, msg=msg, mClass=mClass, pClass=pClass)
+    if not isB:
+        pUrl = wUrl
+
+    return render_template('index.html', js=jsUrl, css=cssUrl, phoenix=pUrl, msg=msg, mClass=mClass, pClass=pClass, target=targetUrl)
 
 # api route to receive and check password
 @app.route('/pass/', methods=['POST'])
@@ -167,7 +174,7 @@ def readConfig(b):
         print('Error reading JSON... {0}'.format(e))
 
 if __name__ == '__main__':
-    isB = False
+    global isB
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "b", [])
@@ -180,4 +187,10 @@ if __name__ == '__main__':
             isB = True
 
     readConfig(isB)
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    myIp = s.getsockname()[0]
+    s.close()
+
     app.run(host=targetAddress, port=targetPort, threaded=True)
