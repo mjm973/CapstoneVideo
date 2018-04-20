@@ -16,7 +16,7 @@ myIp = '0.0.0.0'
 
 bPassLocked = True
 bLockLocked = True
-isB = False;
+isB = False
 
 ### ROUTES ###
 
@@ -34,6 +34,8 @@ def root():
 # locked route: expects key first, then password
 @app.route('/locked/')
 def locked():
+    global isB
+
     if redirectUnlocked():
         return redirect('/')
 
@@ -174,7 +176,7 @@ def readConfig(b):
         print('Error reading JSON... {0}'.format(e))
 
 if __name__ == '__main__':
-    global isB
+    isB = False
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "b", [])
