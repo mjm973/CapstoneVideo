@@ -3,13 +3,15 @@ import getopt
 from pythonosc import osc_message_builder, udp_client, osc_server, dispatcher
 import serial
 import threading
+import re
 
 target_host = 'localhost'
 target_port = 8888
 my_port = 8080
+isMac = False
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "", ["thost=", "tport=", "mport="])
+    opts, args = getopt.getopt(sys.argv[1:], "m", ["thost=", "tport=", "mport="])
 except getopt.GetoptError:
     print("Option Error")
     sys.exit()
@@ -22,11 +24,31 @@ for opt, arg in opts:
         target_port = int(arg)
     elif opt == '--mport':
         my_port = int(arg)
+    elif opt == '-m':
+        isMac = True
 
 # serial setup
 ser = serial.Serial()
 ser.baudrate = 9600
 ser.port = 'COM8'
+
+def find_port(mac):
+    global ser
+    print('Initializing serial...')
+    if mac:
+        print(serial.tools.list_ports.comports(True))
+        sys.exit()
+        pass
+    else:
+        for x in range(6, 13):
+            ser.port = 'COM' + str(x)
+            try:
+                ser.open()
+                print('Bound to serial port {}'.format(ser.port))
+                return
+            except:
+                print('Failed to open port {}, trying a new one...'.format(ser.port))
+        print('Failed to open serial port, only listening...')
 
 def relay_message(derp, msg):
     global ser
@@ -47,29 +69,34 @@ print('Server now listening on port {}'.format(my_port))
 s_thread = threading.Thread(target=server.serve_forever)
 s_thread.start();
 
-print('Initializing serial...')
-try:
-    for x in range(6, 13):
-        ser.port = 'COM' + str(x)
-        try:
-            ser.open()
-            print('Bound to serial port {}'.format(ser.port))
+# print('Initializing serial...')
+# try:
+#     for x in range(6, 13):
+#         ser.port = 'COM' + str(x)
+#         try:
+#             ser.open()
+#             print('Bound to serial port {}'.format(ser.port))
+#
+#             while True:
+#                 msg = ser.readline()
+#                 if (msg is not ''):
+#                     print('Sending: {}'.format(msg))
+#                     client.send_message("/relay", msg)
+#         except:
+#             print('Failed to open port {}, trying a new one...'.format(ser.port))
+#     print('Failed to open serial port, only listening...')
+# except KeyboardInterrupt:
+#     server.shutdown()
+#     print('bai')
 
-            while True:
-                msg = ser.readline()
-                if (msg is not ''):
-                    print('Sending: {}'.format(msg))
-                    client.send_message("/relay", msg)
-        except:
-            print('Failed to open port {}, trying a new one...'.format(ser.port))
-    print('Failed to open serial port, only listening...')
-except KeyboardInterrupt:
-    server.shutdown()
-    print('bai')
+find_port(isMac)
 
 try:
     while True:
-        pass
+        msg = ser.readline()
+        if (msg is not ''):
+            print('Sending: {}'.format(msg))
+            client.send_message("/relay", msg)
 except KeyboardInterrupt:
     server.shutdown()
     print('bai')
