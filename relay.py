@@ -3,7 +3,7 @@ import getopt
 from pythonosc import osc_message_builder, udp_client, osc_server, dispatcher
 import serial
 import threading
-import re
+import glob
 
 target_host = 'localhost'
 target_port = 8888
@@ -36,9 +36,15 @@ def find_port(mac):
     global ser
     print('Initializing serial...')
     if mac:
-        print(serial.tools.list_ports.comports(True))
-        sys.exit()
-        pass
+        ports = glob.glob("/dev/tty.*")
+        for port in ports:
+            ser.port = port
+            try:
+                ser.open()
+                print('Bound to serial port {}'.format(ser.port))
+                return
+            except:
+                print('Failed to open port {}, trying a new one...'.format(ser.port))
     else:
         for x in range(6, 13):
             ser.port = 'COM' + str(x)
@@ -48,7 +54,7 @@ def find_port(mac):
                 return
             except:
                 print('Failed to open port {}, trying a new one...'.format(ser.port))
-        print('Failed to open serial port, only listening...')
+    print('Failed to open serial port, only listening...')
 
 def relay_message(derp, msg):
     global ser
