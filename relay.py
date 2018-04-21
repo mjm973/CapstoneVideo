@@ -4,6 +4,7 @@ from pythonosc import osc_message_builder, udp_client, osc_server, dispatcher
 import serial
 import threading
 import glob
+import socket
 
 target_host = 'localhost'
 target_port = 8888
@@ -69,7 +70,12 @@ client = udp_client.SimpleUDPClient(target_host, target_port)
 disp = dispatcher.Dispatcher()
 disp.map("/relay", relay_message)
 
-server = osc_server.ThreadingOSCUDPServer(('localhost', my_port), disp)
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("8.8.8.8", 80))
+myIp = s.getsockname()[0]
+s.close()
+
+server = osc_server.ThreadingOSCUDPServer((myIp, my_port), disp)
 
 print('Server now listening on port {}'.format(my_port))
 s_thread = threading.Thread(target=server.serve_forever)
