@@ -36,7 +36,7 @@ def find_port(mac):
     global ser
     print('Initializing serial...')
     if mac:
-        ports = glob.glob("/dev/tty.*")
+        ports = glob.glob("/dev/cu.usbserial*")
         for port in ports:
             ser.port = port
             try:
