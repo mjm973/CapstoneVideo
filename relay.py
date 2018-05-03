@@ -81,26 +81,6 @@ print('Server now listening on port {}'.format(my_port))
 s_thread = threading.Thread(target=server.serve_forever)
 s_thread.start();
 
-# print('Initializing serial...')
-# try:
-#     for x in range(6, 13):
-#         ser.port = 'COM' + str(x)
-#         try:
-#             ser.open()
-#             print('Bound to serial port {}'.format(ser.port))
-#
-#             while True:
-#                 msg = ser.readline()
-#                 if (msg is not ''):
-#                     print('Sending: {}'.format(msg))
-#                     client.send_message("/relay", msg)
-#         except:
-#             print('Failed to open port {}, trying a new one...'.format(ser.port))
-#     print('Failed to open serial port, only listening...')
-# except KeyboardInterrupt:
-#     server.shutdown()
-#     print('bai')
-
 find_port(isMac)
 
 try:
