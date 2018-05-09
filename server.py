@@ -60,12 +60,15 @@ def password():
 
     print('Method: {0} || Data: {1}'.format(request.method, request.form))
 
-    form = request.form;
-    passString = form['r'] + form['g'] + form['b']
+    try:
+        form = request.form;
+        passString = form['r'] + form['g'] + form['b']
 
-    print("{0} == {1}".format(passString, password))
-    if int(passString) == password:
-        bPassLocked = False
+        print("{0} == {1}".format(passString, password))
+        if int(passString) == password:
+            bPassLocked = False
+    except:
+        return redirect('/')
 
     return redirect('/')
 
